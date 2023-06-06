@@ -5,7 +5,7 @@ import { WakaTime, WakaTimeAPIQuery, WakaTimeInsightType, WakaTimeSummaryRange, 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-const BASE_URL = 'https://wakatime.com/api/v1/';
+const BASE_URL = 'https://wakatime.com/api/v1';
 
 describe('WakaTime', () => {
 	let wakaTime: WakaTime;
