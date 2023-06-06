@@ -5,3 +5,4 @@ test.*
 /tsconfig.*
 /dist/browser/
 /.*
+__tests__

@@ -1,28 +1,51 @@
-# ESBuild Template for Node/Browser Libraries
+# WakaTimeJS
 
-- Gulp
-- TypeScript
+Type safe JavaScript client for the WakaTime REST API
 
-[Use this template](https://github.com/ESBuildTemplates/ts-lib/generate)
+## Installation
 
-## Library usage
-
-### Browser
-
-Library is exported as `lib` global variable. Edit it in [gulpfile](./gulpfile.js#L17)
-
-### Node
-
-```js
-// JavaScript
-const lib = require("lib-name")
-
-console.log(lib.hello())
+```bash
+npm install wakatimejs
 ```
 
-```ts
-// TypeScript
-import lib from "lib-name"
+or
 
-console.log(lib.hello())
+```bash
+yarn add wakatimejs
 ```
+
+## Usage
+
+consumption is super straight forward, just import the class and instantiate it with your api key.
+
+```javascript
+import { WakaTime } from 'wakatimejs'; // or const { WakaTime } = require('wakatimejs');
+
+const wakaTime = new WakaTime('your-api-key');
+
+wakaTime.users.current().then((user) => {
+  console.log(user);
+});
+```
+
+Alternatively, if you don't have access to the api key at the time of instantiation, you can use the `setApiKey` method.
+
+```javascript
+import { WakaTime } from 'wakatimejs';
+
+const wakatime = new WakaTime();
+
+// ... later on
+
+wakaTime.setApiKey('your-api-key');
+
+wakaTime.users.current().then((user) => {
+  console.log(user);
+});
+```
+
+## API
+
+The API follows the samme nameing convention for the endpoints as the [REST API](https://wakatime.com/developers).
+
+some of the routes in the REST API require a user id or authentication, but these are handled by the client, so you don't have to worry about them.

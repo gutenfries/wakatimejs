@@ -1,10 +1,29 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2020",
-    "lib": ["es2020", "dom"],
-    "downlevelIteration": true,
-    "noImplicitAny": true,
-    "sourceMap": true
-  }
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es2020",
+		"lib": [
+			"es2020",
+			"dom"
+		],
+		"downlevelIteration": true,
+		"rootDir": "src",
+		"strict": true,
+		"allowJs": false,
+		"allowSyntheticDefaultImports": true,
+		"experimentalDecorators": true,
+		"moduleResolution": "node",
+		"noImplicitAny": false,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": true,
+		"sourceMap": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true
+	},
+	"exclude": [
+		"node_modules",
+		"out",
+		"dist"
+	],
 }
