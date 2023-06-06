@@ -167,16 +167,26 @@ export class WakaTime {
 
 	/**
 	 * Converts a query object to a URL query string.
+	 *
+	 * returns an empty string if the query object is empty.
+	 *
 	 * @param query The query object.
 	 * @returns The URL query string.
 	 */
 	private toURLQuery(query: WakaTimeAPIQuery): string {
-		return (
-			'?' +
-			Object.entries(query)
-				.map(([key, value]) => `${key}=${value}`)
-				.join('&')
-		);
+		const keys = Object.keys(query);
+		if (keys.length === 0) return '';
+
+		const queryString = keys
+			.map((key) => {
+				const value = query[key];
+				if (value === undefined) return '';
+				return `${key}=${value}`;
+			})
+			.filter((value) => value !== '')
+			.join('&');
+
+		return `?${queryString}`;
 	}
 
 	/**
@@ -197,9 +207,9 @@ export class WakaTime {
 	 * @returns The formatted date string.
 	 */
 	private formatDate(date: Date): string {
-		const year = date.getFullYear().toString();
-		const month = (date.getMonth() + 1).toString().padStart(2, '0');
-		const day = date.getDate().toString().padStart(2, '0');
+		const year = date.getUTCFullYear().toString();
+		const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+		const day = date.getUTCDate().toString().padStart(2, '0');
 		return `${year}-${month}-${day}`;
 	}
 }

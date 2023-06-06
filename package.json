@@ -6,6 +6,13 @@
 	"main": "dist/node/index.js",
 	"types": "dist/node/index.d.ts",
 	"browser": "dist/browser/bundle.js",
+	"keywords": [
+		"wakatime",
+		"api",
+		"client",
+		"javascript",
+		"typescript"
+	],
 	"scripts": {
 		"bundle": "gulp bundle",
 		"watch": "gulp watch",
@@ -15,6 +22,8 @@
 		"prepublish": "npm run bundle"
 	},
 	"devDependencies": {
+		"@babel/preset-env": "^7.22.4",
+		"@babel/preset-typescript": "^7.21.5",
 		"@types/jest": "^29.5.2",
 		"@types/node": "^20.2.5",
 		"dotenv": "^16.1.4",
