@@ -5,7 +5,7 @@ import { WakaTime, WakaTimeAPIQuery, WakaTimeInsightType, WakaTimeSummaryRange, 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-const BASE_URL = 'https://wakatime.com/api/v1';
+const BASE_URL = 'https://wakatime.com/api/v1/';
 
 describe('WakaTime', () => {
 	let wakaTime: WakaTime;
@@ -94,7 +94,7 @@ describe('WakaTime', () => {
 
 			const result = await wakaTime.getCurrentUser();
 
-			expect(mockedAxios.get).toHaveBeenCalledWith('${BASE_URL}/users/current', {
+			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current`, {
 				headers: {
 					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
 				},
