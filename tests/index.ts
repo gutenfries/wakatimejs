@@ -1,18 +1,27 @@
 import axios from 'axios';
+import { config as dotenvConfig } from 'dotenv';
+import { env } from 'process';
 
-import { WakaTime, WakaTimeAPIQuery, WakaTimeInsightType, WakaTimeSummaryRange, WakaTimeTimeRange } from '../src/index';
+import { WakaTime } from '../src';
+import { APIQuery, CustomTimeRange } from '../src/schema';
+
+dotenvConfig();
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const BASE_URL = 'https://wakatime.com/api/v1';
+const API_KEY = env.WAKATIME_API_KEY;
 
 describe('WakaTime', () => {
+	if (!API_KEY) {
+		throw new Error('No API key');
+	}
+
 	let wakaTime: WakaTime;
-	const apiKey = 'YOUR_API_KEY';
 
 	beforeEach(() => {
-		wakaTime = new WakaTime(apiKey);
+		wakaTime = new WakaTime(API_KEY);
 	});
 
 	afterEach(() => {
@@ -21,8 +30,8 @@ describe('WakaTime', () => {
 
 	describe('setAPIKey', () => {
 		it('should set the API key', () => {
-			const newApiKey = 'NEW_API_KEY';
-			wakaTime.setAPIKey(newApiKey);
+			const newApiKey = 'New API key';
+			wakaTime.updateAPIKey(newApiKey);
 			expect(wakaTime['apiKey']).toBe(newApiKey);
 		});
 	});
@@ -30,7 +39,7 @@ describe('WakaTime', () => {
 	describe('getApiOptions', () => {
 		it('should return the API options with query', () => {
 			const path = '/test';
-			const query: WakaTimeAPIQuery = {
+			const query: APIQuery = {
 				start: '2023-01-01',
 				end: '2023-01-07',
 			};
@@ -38,7 +47,7 @@ describe('WakaTime', () => {
 			const expectedOptions = {
 				url: `${BASE_URL}${path}?start=${query.start}&end=${query.end}`,
 				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+					Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 				},
 			};
 
@@ -51,17 +60,11 @@ describe('WakaTime', () => {
 			const expectedOptions = {
 				url: `${BASE_URL}${path}`,
 				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+					Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 				},
 			};
 
 			expect(wakaTime['getApiOptions'](path)).toEqual(expectedOptions);
-		});
-
-		it('should throw an error if no API key is set', () => {
-			wakaTime = new WakaTime();
-
-			expect(() => wakaTime['getApiOptions']('/test')).toThrowError('No API key set');
 		});
 	});
 
@@ -96,7 +99,7 @@ describe('WakaTime', () => {
 
 			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current`, {
 				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+					Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 				},
 			});
 			expect(result).toEqual(expectedResponse);
@@ -105,16 +108,15 @@ describe('WakaTime', () => {
 
 	describe('getStats', () => {
 		it("should retrieve the user's statistics for the specified time range (default: Last7Days)", async () => {
-			const range = WakaTimeTimeRange.Last7Days;
 			const expectedResponse = { stats: { duration: 3600 } };
 
 			mockedAxios.get.mockResolvedValue({ data: expectedResponse });
 
-			const result = await wakaTime.getStats(range);
+			const result = await wakaTime.getStats();
 
-			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current/stats/${range}`, {
+			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current/stats`, {
 				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+					Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 				},
 			});
 			expect(result).toEqual(expectedResponse);
@@ -123,7 +125,7 @@ describe('WakaTime', () => {
 
 	describe('getSummaries', () => {
 		it('should retrieve the summaries for the specified date range', async () => {
-			const range: WakaTimeSummaryRange = {
+			const range: CustomTimeRange = {
 				start: '2023-01-01',
 				end: '2023-01-07',
 			};
@@ -137,7 +139,7 @@ describe('WakaTime', () => {
 				`${BASE_URL}/users/current/summaries?start=${range.start}&end=${range.end}`,
 				{
 					headers: {
-						Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+						Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 					},
 				}
 			);
@@ -145,7 +147,7 @@ describe('WakaTime', () => {
 		});
 
 		it('should retrieve the summaries for a single date if start and end are the same', async () => {
-			const range: WakaTimeSummaryRange = {
+			const range: CustomTimeRange = {
 				start: '2023-01-01',
 				end: '2023-01-01',
 			};
@@ -159,7 +161,7 @@ describe('WakaTime', () => {
 				`${BASE_URL}/users/current/summaries?start=${range.start}&end=${range.end}`,
 				{
 					headers: {
-						Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+						Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 					},
 				}
 			);
@@ -178,42 +180,7 @@ describe('WakaTime', () => {
 
 			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current/durations?date=${date}`, {
 				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
-				},
-			});
-			expect(result).toEqual(expectedResponse);
-		});
-	});
-
-	describe('getInsights', () => {
-		it('should retrieve the insights data for the specified type and date', async () => {
-			const type = WakaTimeInsightType.Languages;
-			const date = '2023-01-01';
-			const expectedResponse = { insights: [{ name: 'JavaScript', total_seconds: 3600 }] };
-
-			mockedAxios.get.mockResolvedValue({ data: expectedResponse });
-
-			const result = await wakaTime.getInsights(type, date);
-
-			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current/insights/${type}?date=${date}`, {
-				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
-				},
-			});
-			expect(result).toEqual(expectedResponse);
-		});
-
-		it('should retrieve the insights data for the specified type without date', async () => {
-			const type = WakaTimeInsightType.Projects;
-			const expectedResponse = { insights: [{ name: 'MyProject', total_seconds: 3600 }] };
-
-			mockedAxios.get.mockResolvedValue({ data: expectedResponse });
-
-			const result = await wakaTime.getInsights(type);
-
-			expect(mockedAxios.get).toHaveBeenCalledWith(`${BASE_URL}/users/current/insights/${type}`, {
-				headers: {
-					Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
+					Authorization: `Basic ${Buffer.from(API_KEY).toString('base64')}`,
 				},
 			});
 			expect(result).toEqual(expectedResponse);
@@ -222,7 +189,7 @@ describe('WakaTime', () => {
 
 	describe('toURLQuery', () => {
 		it('should convert a query object to a URL query string', () => {
-			const query: WakaTimeAPIQuery = {
+			const query: APIQuery = {
 				start: '2023-01-01',
 				end: '2023-01-07',
 			};
@@ -232,7 +199,7 @@ describe('WakaTime', () => {
 		});
 
 		it('should return an empty string if the query object is empty', () => {
-			const query: WakaTimeAPIQuery = {};
+			const query: APIQuery = {};
 
 			expect(wakaTime['toURLQuery'](query)).toBe('');
 		});

@@ -1,65 +1,49 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
-/**
- * Represents the time range options for retrieving WakaTime stats.
- */
-export enum WakaTimeTimeRange {
-	Last7Days = 'last_7_days',
-	Last30Days = 'last_30_days',
-	Last6Months = 'last_6_months',
-	LastYear = 'last_year',
-	AllTime = 'all_time',
-}
-
-/**
- * Represents the insight types for retrieving WakaTime insights.
- */
-export enum WakaTimeInsightType {
-	Languages = 'languages',
-	Editors = 'editors',
-	Projects = 'projects',
-	Categories = 'categories',
-}
-
-/**
- * Represents the query parameters for the WakaTime API.
- */
-export interface WakaTimeAPIQuery {
-	start?: string;
-	end?: string;
-	date?: string;
-}
-
-/**
- * Represents the date range for retrieving WakaTime summaries.
- */
-export interface WakaTimeSummaryRange {
-	start: string | Date;
-	end: string | Date;
-}
+import {
+	AllTimeSinceTodayResponse,
+	APIQuery,
+	APIResponse,
+	CurrentUserResponse,
+	CustomTimeRange,
+	DurationsResponse,
+	HeartbeatsResponse,
+	InsightsBestDayResponse,
+	InsightsCategoriesResponse,
+	InsightsDailyAverageResponse,
+	InsightsDaysResponse,
+	InsightsEditorsResponse,
+	InsightsLanguagesResponse,
+	InsightsMachinesResponse,
+	InsightsOperatingSystemsResponse,
+	InsightsProjectsResponse,
+	InsightsWeekdaysResponse,
+	ProjectsResponse,
+	StatsResponse,
+	SummariesResponse,
+} from './schema';
 
 /**
  * Represents the WakaTime API client.
  */
 export class WakaTime {
 	private readonly BASE_URL = 'https://wakatime.com/api/v1';
-	private apiKey: string | null = null;
+	apiKey: string;
 
 	/**
 	 * Creates an instance of the WakaTime API client.
 	 * @param apiKey The API key to authenticate requests.
 	 */
-	constructor(apiKey?: string) {
-		if (apiKey) this.apiKey = apiKey;
+	constructor(apiKey: string) {
+		this.apiKey = apiKey;
 	}
+
 	/**
 	 * Sets the API key to authenticate requests.
 	 * @param apiKey The API key to authenticate requests.
-	 * @returns The WakaTime API client.
 	 */
-	setAPIKey(apiKey: string): WakaTime {
+	updateAPIKey(apiKey: string) {
 		this.apiKey = apiKey;
-		return this;
 	}
 
 	/**
@@ -69,11 +53,7 @@ export class WakaTime {
 	 * @returns The Axios request options.
 	 * @throws An error if no API key is set.
 	 */
-	private getApiOptions(path: string, query?: WakaTimeAPIQuery): AxiosRequestConfig {
-		if (!this.apiKey) {
-			throw new Error('No API key set');
-		}
-
+	private getApiOptions(path: string, query?: APIQuery): AxiosRequestConfig {
 		const queryString = query ? this.toURLQuery(query) : '';
 		return {
 			url: `${this.BASE_URL}${path}${queryString}`,
@@ -90,79 +70,12 @@ export class WakaTime {
 	 * @returns A promise that resolves to the JSON response.
 	 * @throws An error if the URL or headers are missing.
 	 */
-	private async get(url: AxiosRequestConfig['url'], headers: AxiosRequestConfig['headers']): Promise<JSON> {
+	private async get(url: AxiosRequestConfig['url'], headers: AxiosRequestConfig['headers']): Promise<APIResponse> {
 		if (!url || !headers) {
 			throw new Error('Missing url or headers');
 		}
-		const response: JSON = (await axios.get(url, { headers })).data;
+		const response: APIResponse = (await axios.get(url, { headers })).data;
 		return response;
-	}
-
-	/**
-	 * Retrieves the current user's information.
-	 * @returns A promise that resolves to the user's JSON data.
-	 */
-	async getCurrentUser(): Promise<JSON> {
-		const { url, headers } = this.getApiOptions('/users/current');
-		return this.get(url, headers);
-	}
-
-	/**
-	 * Retrieves the user's statistics for the specified time range.
-	 * @param range The time range for the statistics (default: Last7Days).
-	 * @returns A promise that resolves to the statistics JSON data.
-	 */
-	async getStats(range: WakaTimeTimeRange = WakaTimeTimeRange.Last7Days): Promise<JSON> {
-		const { url, headers } = this.getApiOptions(`/users/current/stats/${range}`);
-		return this.get(url, headers);
-	}
-
-	/**
-	 * Retrieves the summaries for the specified date range.
-	 * @param range The date range for the summaries.
-	 * @returns A promise that resolves to the summaries JSON data.
-	 */
-	async getSummaries(range: WakaTimeSummaryRange): Promise<JSON> {
-		let start = '';
-		let end = '';
-
-		if ('start' in range && 'end' in range) {
-			start = this.getDateString(range.start);
-			end = this.getDateString(range.end);
-		} else {
-			start = this.getDateString(range);
-			end = this.getDateString(range);
-		}
-
-		const { url, headers } = this.getApiOptions('/users/current/summaries', { start, end });
-		return this.get(url, headers);
-	}
-
-	/**
-	 * Retrieves the duration data for the specified date.
-	 * @param date The date for the duration data.
-	 * @returns A promise that resolves to the duration JSON data.
-	 */
-	async getDurations(date: string | Date): Promise<JSON> {
-		const { url, headers } = this.getApiOptions('/users/current/durations', {
-			date: this.getDateString(date),
-		});
-		return this.get(url, headers);
-	}
-
-	/**
-	 * Retrieves the insights data for the specified type and date.
-	 * @param type The type of insights to retrieve.
-	 * @param date The optional date for the insights.
-	 * @returns A promise that resolves to the insights JSON data.
-	 */
-	async getInsights(type: WakaTimeInsightType, date?: string | Date): Promise<JSON> {
-		const path = date
-			? `/users/current/insights/${type}?date=${this.getDateString(date)}`
-			: `/users/current/insights/${type}`;
-
-		const { url, headers } = this.getApiOptions(path);
-		return this.get(url, headers);
 	}
 
 	/**
@@ -173,7 +86,7 @@ export class WakaTime {
 	 * @param query The query object.
 	 * @returns The URL query string.
 	 */
-	private toURLQuery(query: WakaTimeAPIQuery): string {
+	private toURLQuery(query: APIQuery): string {
 		const keys = Object.keys(query);
 		if (keys.length === 0) return '';
 
@@ -211,5 +124,304 @@ export class WakaTime {
 		const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
 		const day = date.getUTCDate().toString().padStart(2, '0');
 		return `${year}-${month}-${day}`;
+	}
+	/**
+	 * Retrieves the current user's information.
+	 * @returns A promise that resolves to the user's JSON data.
+	 */
+	async getCurrentUser(): Promise<CurrentUserResponse> {
+		const { url, headers } = this.getApiOptions('/users/current');
+		return this.get(url, headers) as Promise<CurrentUserResponse>;
+	}
+
+	/**
+	 * Retrieves the summaries for the specified date range.
+	 * @param range The date range for the summaries.
+	 * @returns A promise that resolves to the summaries JSON data.
+	 */
+	async getSummaries(range: CustomTimeRange): Promise<SummariesResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/summaries', { start, end });
+		return this.get(url, headers) as Promise<SummariesResponse>;
+	}
+
+	/**
+	 * Retrieves all time since today.
+	 * @returns A promise that resolves to the summaries JSON data.
+	 */
+	async getAllTime(): Promise<AllTimeSinceTodayResponse> {
+		const { url, headers } = this.getApiOptions('/users/current/all_time_since_today');
+		return this.get(url, headers) as Promise<AllTimeSinceTodayResponse>;
+	}
+
+	/**
+	 * Retrieves the duration data for the specified date.
+	 * @param date The date for the duration data.
+	 * @returns A promise that resolves to the duration JSON data.
+	 */
+	async getDurations(date: string | Date): Promise<DurationsResponse> {
+		const { url, headers } = this.getApiOptions('/users/current/durations', {
+			date: this.getDateString(date),
+		});
+		return this.get(url, headers) as Promise<DurationsResponse>;
+	}
+
+	/**
+	 * Retrieves the best day insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsBestDay(range: CustomTimeRange): Promise<InsightsBestDayResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/best_day', { start, end });
+		return this.get(url, headers) as Promise<InsightsBestDayResponse>;
+	}
+
+	/**
+	 * Retrieves the categories insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsCategories(range: CustomTimeRange): Promise<InsightsCategoriesResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/category', { start, end });
+		return this.get(url, headers) as Promise<InsightsCategoriesResponse>;
+	}
+
+	/**
+	 * Retrieves the daily average insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsDailyAverage(range: CustomTimeRange): Promise<InsightsDailyAverageResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/daily_average', { start, end });
+		return this.get(url, headers) as Promise<InsightsDailyAverageResponse>;
+	}
+
+	/**
+	 * Retrieves the days insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsDays(range: CustomTimeRange): Promise<InsightsDaysResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/days', { start, end });
+		return this.get(url, headers) as Promise<InsightsDaysResponse>;
+	}
+
+	/**
+	 * Retrieves the editors insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsEditors(range: CustomTimeRange): Promise<InsightsEditorsResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/editors', { start, end });
+		return this.get(url, headers) as Promise<InsightsEditorsResponse>;
+	}
+
+	/**
+	 * Retrieves the languages insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsLanguages(range: CustomTimeRange): Promise<InsightsLanguagesResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/languages', { start, end });
+		return this.get(url, headers) as Promise<InsightsLanguagesResponse>;
+	}
+
+	/**
+	 * Retrieves the machines insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsMachines(range: CustomTimeRange): Promise<InsightsMachinesResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/machines', { start, end });
+		return this.get(url, headers) as Promise<InsightsMachinesResponse>;
+	}
+
+	/**
+	 * Retrieves the operating systems insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsOperatingSystems(range: CustomTimeRange): Promise<InsightsOperatingSystemsResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/operating_systems', { start, end });
+		return this.get(url, headers) as Promise<InsightsOperatingSystemsResponse>;
+	}
+
+	/**
+	 * Retrieves the projects insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsProjects(range: CustomTimeRange): Promise<InsightsProjectsResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/projects', { start, end });
+		return this.get(url, headers) as Promise<InsightsProjectsResponse>;
+	}
+
+	/**
+	 * Retrieves the weekdays insights for the specified date range.
+	 * @param range The date range for the insights.
+	 * @returns A promise that resolves to the insights JSON data.
+	 */
+	async getInsightsWeekdays(range: CustomTimeRange): Promise<InsightsWeekdaysResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/insights/weekdays', { start, end });
+		return this.get(url, headers) as Promise<InsightsWeekdaysResponse>;
+	}
+
+	/**
+	 * Retrieves the heartbeats for the specified date range.
+	 * @param range The date range for the heartbeats.
+	 * @returns A promise that resolves to the heartbeats JSON data.
+	 */
+	async getHeartbeats(range: CustomTimeRange): Promise<HeartbeatsResponse> {
+		let start = '';
+		let end = '';
+
+		if ('start' in range && 'end' in range) {
+			start = this.getDateString(range.start);
+			end = this.getDateString(range.end);
+		} else {
+			start = this.getDateString(range);
+			end = this.getDateString(range);
+		}
+
+		const { url, headers } = this.getApiOptions('/users/current/heartbeats', { start, end });
+		return this.get(url, headers) as Promise<HeartbeatsResponse>;
+	}
+
+	/**
+	 * Retrieves the projects.
+	 * @returns A promise that resolves to the projects JSON data.
+	 */
+	async getProjects(): Promise<ProjectsResponse> {
+		const { url, headers } = this.getApiOptions('/users/current/projects');
+		return this.get(url, headers) as Promise<ProjectsResponse>;
+	}
+
+	/**
+	 * Retrieves the stats.
+	 * @returns A promise that resolves to the stats JSON data.
+	 */
+	async getStats(): Promise<StatsResponse> {
+		const { url, headers } = this.getApiOptions('/users/current/stats');
+		return this.get(url, headers) as Promise<StatsResponse>;
 	}
 }

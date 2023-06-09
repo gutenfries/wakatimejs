@@ -4,7 +4,7 @@ const esbuild = require('gulp-esbuild');
 
 function bundleBrowser() {
 	return gulp
-		.src('src/index.ts')
+		.src('index.ts')
 		.pipe(
 			esbuild({
 				tsconfig: 'tsconfig.browser.json',
@@ -24,11 +24,11 @@ function bundleBrowser() {
 }
 
 function bundleNode() {
-	return gulp.src('src/**/*.ts').pipe(tsc('tsconfig.node.json')).pipe(gulp.dest('dist/node'));
+	return gulp.src('**/*.ts').pipe(tsc('tsconfig.node.json')).pipe(gulp.dest('dist/node'));
 }
 
 function watch() {
-	return gulp.watch('src/**/*.ts', bundle);
+	return gulp.watch('**/*.ts', bundle);
 }
 
 const bundle = gulp.parallel(bundleBrowser, bundleNode);
