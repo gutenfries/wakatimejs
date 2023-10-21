@@ -19,28 +19,28 @@ yarn add wakatimejs
 consumption is super straight forward, just import the class and instantiate it with your api key.
 
 ```javascript
-import { WakaTime } from 'wakatimejs'; // or const { WakaTime } = require('wakatimejs');
+import { WakaTime } from "wakatimejs"; // or const { WakaTime } = require('wakatimejs');
 
-const wakaTime = new WakaTime('your-api-key');
+const wakaTime = new WakaTime("your-api-key");
 
 wakaTime.users.current().then((user) => {
-  console.log(user);
+	console.log(user);
 });
 ```
 
 Alternatively, if you don't have access to the api key at the time of instantiation, you can use the `setApiKey` method.
 
 ```javascript
-import { WakaTime } from 'wakatimejs';
+import { WakaTime } from "wakatimejs";
 
 const wakatime = new WakaTime();
 
 // ... later on
 
-wakaTime.setApiKey('your-api-key');
+wakaTime.setApiKey("your-api-key");
 
 wakaTime.users.current().then((user) => {
-  console.log(user);
+	console.log(user);
 });
 ```
 

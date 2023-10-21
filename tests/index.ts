@@ -15,7 +15,7 @@ const API_KEY = env.WAKATIME_API_KEY;
 
 describe('WakaTime', () => {
 	if (!API_KEY) {
-		throw new Error('No API key');
+		throw new Error('No API key, You must define an API key in the environment variable WAKATIME_API_KEY');
 	}
 
 	let wakaTime: WakaTime;
