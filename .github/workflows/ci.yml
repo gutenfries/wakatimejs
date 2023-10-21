@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: ["main"]
 
-env:
-  WAKATIME_API_KEY: ${{secrets.WAKATIME_API_KEY}}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,3 +27,5 @@ jobs:
 
       - name: Test
         run: npm run test
+        env:
+          WAKATIME_API_KEY: ${{secrets.WAKATIME_API_KEY}}
