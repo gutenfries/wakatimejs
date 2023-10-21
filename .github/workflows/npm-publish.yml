@@ -10,7 +10,7 @@ on:
 
 env:
   NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-  WAKATIME_API_KEY: ${{secrets.wakatime_api_key}}
+  WAKATIME_API_KEY: ${{secrets.WAKATIME_API_KEY}}
 
 jobs:
   build:
