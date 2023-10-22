@@ -4,9 +4,7 @@
 name: publish to npm
 
 on:
-  push: # Publish `main` branch to npm on release
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
