@@ -1,6 +1,6 @@
 {
 	"name": "wakatimejs",
-	"version": "1.1.0",
+	"version": "2.0.0",
 	"license": "MIT",
 	"description": "Type safe JavaScript client for the WakaTime REST API",
 	"main": "dist/node/index.js",
